@@ -81,11 +81,19 @@ def test_toggle_group_navigation():
     assert nav_system.group_navigation is False
 
 
-def test_auto_print_behavior(capfd):
+def test_next_when_autoprint_true_and_group_nav_false(capfd):
     nav_system = OrderNavigationSystem(data, handler_name, group_navigation=False, auto_print=True)
     nav_system.next_item()
     current_item = nav_system.get_current_item()
     assert current_item['state'] == 'completed' and current_item['name'] == 'Item 2'
+
+
+# def test_next_when_autoprint_true_and_group_nav_true(capfd):
+#     # ISSUE: returns the last item in the current group instead the first 
+#     nav_system = OrderNavigationSystem(data, handler_name, group_navigation=True, auto_print=True)
+#     nav_system.next_page()
+#     current_item = nav_system.get_current_item()
+#     assert current_item['state'] == 'completed' and current_item['name'] == 'Item 4'
 
 
 def test_mark_completed_item():

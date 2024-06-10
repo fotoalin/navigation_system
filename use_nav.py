@@ -23,18 +23,6 @@ def main():
     
     actions = ['toggle', 'print', 'next', 'prev', 'next_group', 'prev_group', 'state', 'exit', 'mode', 'data', 'settings']
 
-    def print_data():
-        print('\n\n', '=' * 50)
-        for group in data:
-            print(group)
-            print('-' * 50)
-        print('=' * 50, end='\n\n')
-
-    def display_settings():
-        print(f"Auto print: {nav_system.auto_print}")
-        print(f"Handler name: {nav_system.handler_name}")
-        print(f"Group navigation: {nav_system.group_navigation}")
-
     while True:
         action = input("Enter action: ")
         if not action:
@@ -49,7 +37,7 @@ def main():
             print("\nAvailable actions: \n\t", actions, '\n')
         elif action in ["tp", "toggle autoprint", "toggle_autoprint", "toggle_print", "toggle print"]:
             nav_system.toggle_autoprint()
-            display_settings()
+            nav_system.display_settings()
             # print_data()
         elif action in ["print"]:
             nav_system.mark_current_item_as_complete()
@@ -69,22 +57,22 @@ def main():
             break
         elif action in ["toggle_nav", "tn", "toggle nav", "toggle navigation"]:
             nav_system.toggle_group_navigation()
-            display_settings()
-            print_data()
+            nav_system.display_settings()
+            nav_system.print_data()
             # logger.debug(f"Navigation Mode changed: group_navigation={nav_system.group_navigation}")
             continue
         elif action in ["data", "d"]:
-            print_data()
+            nav_system.print_data()
             continue
         elif action in ['settings', 'config', 'conf']:
-            display_settings()
+            nav_system.display_settings()
             continue
         elif action in ['continue', 'c']:
             nav_system.continue_item()
             
 
         # show whole dataset after each action
-        print_data()
+        nav_system.print_data()
         
         
 if __name__ == "__main__":

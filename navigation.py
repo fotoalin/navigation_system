@@ -265,3 +265,14 @@ class OrderNavigationSystem:
         item['state'] = 'completed'
         logger.debug(f"Item {item['id']} marked as completed.")
 
+    def print_data(self):
+        print('\n\n', '=' * 50)
+        for group in self.data:
+            print(group)
+            print('-' * 50)
+        print('=' * 50, end='\n\n')
+
+    def display_settings(self):
+        print(f"Auto print: {self.auto_print}")
+        print(f"Handler name: {self.handler_name}")
+        print(f"Group navigation: {self.group_navigation}")
