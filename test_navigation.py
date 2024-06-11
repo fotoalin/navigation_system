@@ -13,13 +13,22 @@ data = [
 
 handler_name = "John"
 
+def test_initialize_group_navigation_group_nav_true():
+    nav_system = OrderNavigationSystem(data, handler_name, group_navigation=True)
+    assert nav_system.group_navigation is True
+    assert nav_system.get_current_state()['current_group'] == 0
+
+def test_initialize_group_navigation_group_nav_false():
+    nav_system = OrderNavigationSystem(data, handler_name, group_navigation=False)
+    assert nav_system.group_navigation is False
+    assert nav_system.get_current_state()['current_group'] == 0
 
 def test_next_item():
     nav_system = OrderNavigationSystem(data, handler_name, group_navigation=False)
     initial_item = nav_system.get_current_item()
     nav_system.next_item()
-    assert nav_system.get_current_item() != initial_item
-
+    next_item = nav_system.get_current_item()
+    assert next_item != initial_item and next_item['name'] == 'Item 2'
 
 def test_previous_item():
     nav_system = OrderNavigationSystem(data, handler_name, group_navigation=False)
@@ -27,6 +36,7 @@ def test_previous_item():
     second_item = nav_system.get_current_item()
     nav_system.previous_item()
     assert nav_system.get_current_item() != second_item
+    assert nav_system.get_current_item()['name'] == 'Item 1'
 
 
 def test_next_page():
@@ -81,19 +91,63 @@ def test_toggle_group_navigation():
     assert nav_system.group_navigation is False
 
 
-def test_next_when_autoprint_true_and_group_nav_false(capfd):
+def test_next_when_autoprint_true_and_group_nav_false():
     nav_system = OrderNavigationSystem(data, handler_name, group_navigation=False, auto_print=True)
     nav_system.next_item()
     current_item = nav_system.get_current_item()
     assert current_item['state'] == 'completed' and current_item['name'] == 'Item 2'
+    nav_system.next_item()
+    current_item = nav_system.get_current_item()
+    assert current_item['state'] == 'completed' and current_item['name'] == 'Item 3'
+    nav_system.next_item()
+    current_item = nav_system.get_current_item()
+    assert current_item['state'] == 'completed' and current_item['name'] == 'Item 3'
+    nav_system.next_item()
+    current_item = nav_system.get_current_item()
+    assert current_item['state'] == 'completed' and current_item['name'] == 'Item 3'
+
+def test_previous_when_autoprint_true_and_group_nav_false():
+    nav_system = OrderNavigationSystem(data, handler_name, group_navigation=False, auto_print=True)
+    current_item = nav_system.get_current_item()
+    assert current_item['state'] == 'completed' and current_item['name'] == 'Item 1'
+    nav_system.previous_item()
+    current_item = nav_system.get_current_item()
+    assert current_item['state'] == 'completed' and current_item['name'] == 'Item 1'
+    nav_system.next_item()
+    nav_system.next_item()
+    nav_system.next_item()
+    current_item = nav_system.get_current_item()
+    assert current_item['state'] == 'completed' and current_item['name'] == 'Item 3'
+    nav_system.previous_item()
+    current_item = nav_system.get_current_item()
+    assert current_item['state'] == 'completed' and current_item['name'] == 'Item 2'
+    nav_system.previous_item()
+    current_item = nav_system.get_current_item()
+    assert current_item['state'] == 'completed' and current_item['name'] == 'Item 1'
+    nav_system.previous_item()
+    current_item = nav_system.get_current_item()
+    assert current_item['state'] == 'completed' and current_item['name'] == 'Item 1'
 
 
-# def test_next_when_autoprint_true_and_group_nav_true(capfd):
-#     # ISSUE: returns the last item in the current group instead the first 
+def test_next_when_autoprint_true_and_group_nav_true():
+    nav_system = OrderNavigationSystem(data, handler_name, group_navigation=True, auto_print=True)
+    current_item = nav_system.get_current_item()
+    assert current_item['state'] == 'completed' and current_item['name'] == 'Item 1'
+
+    nav_system.next_page()
+    current_item = nav_system.get_current_item()
+    assert current_item['state'] == 'completed' and current_item['name'] == 'Item 4'
+
+# def test_next_when_autoprint_true_and_group_nav_true():
+# #     # ISSUE: returns the last item in the current group instead the first 
 #     nav_system = OrderNavigationSystem(data, handler_name, group_navigation=True, auto_print=True)
+#     nav_system.print_data()
+#     current_item = nav_system.get_current_item()
+#     assert current_item['state'] == 'completed' and current_item['name'] == 'Item 1'
 #     nav_system.next_page()
 #     current_item = nav_system.get_current_item()
-#     assert current_item['state'] == 'completed' and current_item['name'] == 'Item 4'
+#     assert current_item['name'] == 'Item 2' and current_item['state'] == 'completed'
+
 
 
 def test_mark_completed_item():
@@ -109,6 +163,38 @@ def test_empty_data():
     empty_data = []
     with pytest.raises(ValueError, match="'data' is empty."):
         OrderNavigationSystem(empty_data, handler_name, group_navigation=False)
+
+
+def test_reset_current_item():
+    nav_system = OrderNavigationSystem(data, handler_name, group_navigation=False)
+    nav_system.mark_current_item_as_complete()
+    nav_system.reset_current_item()
+    assert nav_system.get_current_item()['state'] is None
+    assert nav_system.get_current_item()['name'] == 'Item 1'
+    assert nav_system.get_current_item()['handlers'] == []
+
+def test_reset_current_group():
+    nav_system = OrderNavigationSystem(data, handler_name, group_navigation=True)
+    nav_system.mark_current_item_as_complete()
+    nav_system.next_page()
+    nav_system.mark_current_item_as_complete()
+    nav_system.reset_current_group()
+    assert nav_system.get_current_item()['state'] is None
+    assert nav_system.get_current_item()['name'] == 'Item 1'
+    assert nav_system.get_current_item()['handlers'] == []
+    assert nav_system.get_current_state()['current_group'] == 0
+
+def test_reset_all():
+    nav_system = OrderNavigationSystem(data, handler_name, group_navigation=True)
+    nav_system.mark_current_item_as_complete()
+    nav_system.next_page()
+    nav_system.mark_current_item_as_complete()
+    nav_system.reset_all()
+    assert nav_system.get_current_item()['state'] is None
+    assert nav_system.get_current_item()['name'] == 'Item 1'
+    assert nav_system.get_current_item()['handlers'] == []
+    assert nav_system.get_current_state()['current_group'] == 0
+
 
 
 if __name__ == "__main__":
