@@ -13,6 +13,7 @@ The class has the following methods:
 - previous_page(): Move to the previous group of items.
 - get_current_state(): Get the current state of the navigation system.
 - get_current_item(): Get the current item.
+- get_current_group(): Get the current group.
 - toggle_autoprint(): Toggle the auto-print feature.
 - toggle_group_navigation(): Toggle the group navigation feature.
 - mark_current_item_as_complete(): Mark the current item as completed.
@@ -43,6 +44,7 @@ nav_system.previous_page()
 nav_system.continue_item()
 nav_system.get_current_state()
 nav_system.get_current_item()
+nav_system.get_current_group()
 nav_system.toggle_autoprint()
 nav_system.mark_current_item_as_complete()
 """
@@ -61,7 +63,7 @@ class OrderNavigationSystem:
         self.group_navigation = group_navigation
         self.handler_name = handler_name
         self.auto_print = auto_print
-        # self._view_current_item()
+        self._view_current_item()
 
         if len(data) == 0:
             raise ValueError("Data should not be empty.")
@@ -252,6 +254,10 @@ class OrderNavigationSystem:
             raise ValueError("Current group index is out of range.")
         return self.data[self.current_group][self.current_order]
 
+    def get_current_group(self):
+        """Get the current group."""
+        return self.data[self.current_group]
+
     def toggle_autoprint(self):
         """Toggle the auto-print ON/OFF (True/False)."""
         self.auto_print = not self.auto_print
@@ -293,20 +299,20 @@ class OrderNavigationSystem:
     def reset_current_group(self):
         for item in self.data[self.current_group]:
             item['state'] = None
-            # item['handlers'] = []
-            if 'handlers' not in item:
-                item['handlers'] = []
-            else:
-                item['handlers'] = [handler for handler in item['handlers'] if handler != self.handler_name]
+            item['handlers'] = []
+            # if 'handlers' not in item:
+            #     item['handlers'] = []
+            # else:
+            #     item['handlers'] = [handler for handler in item['handlers'] if handler != self.handler_name]
         logger.debug("Current group reset.")
 
     def reset_all(self):
         for group in self.data:
             for item in group:
                 item['state'] = None
-                # item['handlers'] = []
-                if 'handlers' not in item:
-                    item['handlers'] = []
-                else:
-                    item['handlers'] = [handler for handler in item['handlers'] if handler != self.handler_name]
+                item['handlers'] = []
+                # if 'handlers' not in item:
+                #     item['handlers'] = []
+                # else:
+                #     item['handlers'] = [handler for handler in item['handlers'] if handler != self.handler_name]
         logger.debug("All groups reset.")
