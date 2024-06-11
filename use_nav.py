@@ -2,13 +2,15 @@
 import json
 import logging
 
+# from logging_config import logger
 from navigation import OrderNavigationSystem
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
+logger.setLevel(logging.DEBUG)
 
 
 def main():
+    logger.debug("Running main function")
     # Example data: List of lists containing dictionaries with state and handlers
     data = [
         [{"id": 1, "name": "Item 1", "state": None, "handlers": []}, {"id": 2, "name": "Item 2", "state": None, "handlers": []}, {"id": 3, "name": "Item 3", "state": None, "handlers": []}],
@@ -36,20 +38,20 @@ def main():
         elif isinstance(action, str):
             action = action.lower().strip()
         elif action not in actions:
-            print("Invalid action. Type 'help' to see available actions.")
+            logger.info("Invalid action. Type 'help' to see available actions.")
             continue
         if action in ["help", "h"]:
-            print("\nAvailable actions: \n\t", actions, '\n')
+            logger.info("\nAvailable actions: \n\t", actions, '\n')
         elif 'start' in action or 'begin' in action:
             action_values = action.split()
             if len(action_values) < 2:
-                print("Please provide the group number you want to start")
+                logger.info("Please provide the group number you want to start")
                 continue
             elif not action_values[1].isdigit():
-                print("Please provide a valid group number")
+                logger.info("Please provide a valid group number")
                 continue
             elif int(action_values[1]) > len(data):
-                print("Group number out of range")
+                logger.info("Group number out of range")
                 continue
             nav_system.start(int(action_values[1]) - 1)
         elif action in ["toggle print", "tp", "toggle_print", "toggle autoprint", "toggle_autoprint"]:
@@ -67,10 +69,10 @@ def main():
         elif action in ["prev page", "prev_group", "pg", "previous_page", "prev_page", "pp"]:
             nav_system.previous_page()
         elif action in ["state", "s"]:
-            logger.debug(json.dumps(nav_system.get_current_state(), indent=4))
+            print(json.dumps(nav_system.get_current_state(), indent=4))
             continue
         elif action in ["exit", "e", "quit", "q"]:
-            print("Exiting...")
+            logger.info("Exiting...")
             break
         elif action in ["toggle navigation", "tn", "toggle_nav", "toggle nav", "toggle_navigation"]:
             nav_system.toggle_group_navigation()
@@ -101,4 +103,6 @@ def main():
         
         
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    logger.info("* * * Start using the navigation system with a group of items.")
     main()
