@@ -46,17 +46,11 @@ nav_system.get_current_item()
 nav_system.toggle_autoprint()
 nav_system.mark_current_item_as_complete()
 """
-
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s - %(lineno)d')
-
-ch = logging.StreamHandler()
-ch.setFormatter(formatter)
-logger.addHandler(ch)
+# from logging_config import logger
 
 
 class OrderNavigationSystem:
@@ -257,7 +251,6 @@ class OrderNavigationSystem:
         elif self.current_group >= len(self.data):
             raise ValueError("Current group index is out of range.")
         return self.data[self.current_group][self.current_order]
-
 
     def toggle_autoprint(self):
         """Toggle the auto-print ON/OFF (True/False)."""
