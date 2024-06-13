@@ -58,12 +58,12 @@ logger = logging.getLogger(__name__)
 class OrderNavigationSystem:
     def __init__(self, data, handler_name, group_navigation=False, auto_print=False):
         self.data = data
-        self.current_group = 0
-        self.current_order = 0
+        self.current_group_index = 0
+        self.current_order_index = 0
         self.group_navigation = group_navigation
         self.handler_name = handler_name
         self.auto_print = auto_print
-        self._view_current_item()
+        # self._view_current_item()
 
         if len(data) == 0:
             raise ValueError("Data should not be empty.")
@@ -108,72 +108,72 @@ class OrderNavigationSystem:
 
     def _next_item_index(self):
         if not self.auto_print:
-            if self.current_order < len(self.data[self.current_group]) - 1:
-                return self.current_order + 1
+            if self.current_order_index < len(self.data[self.current_group_index]) - 1:
+                return self.current_order_index + 1
             else:
                 return None
         # if no item found, start from the beginning of the group and find the next item that is not viewed or completed
-        for i in range(len(self.data[self.current_group])):
-            item = self.data[self.current_group][i]
+        for i in range(len(self.data[self.current_group_index])):
+            item = self.data[self.current_group_index][i]
             if item['state'] is None:
                 return i
         # if no item found, start from the beginning of the group and find the next item that is in the 'view' state
-        for i in range(len(self.data[self.current_group])):
-            item = self.data[self.current_group][i]
+        for i in range(len(self.data[self.current_group_index])):
+            item = self.data[self.current_group_index][i]
             if item['state'] == 'view':
                 return i
         return None
 
     def _previous_item_index(self):
         if not self.auto_print:
-            if self.current_order > 0:
-                return self.current_order - 1
+            if self.current_order_index > 0:
+                return self.current_order_index - 1
             else:
                 return None
         # If auto_print is True, find the previous item that is not viewed or completed, starting from the current position in reverse
-        for i in range(self.current_order - 1, -1, -1):
+        for i in range(self.current_order_index - 1, -1, -1):
             # from the current position, find the previous item that is not viewed or completed
-            item = self.data[self.current_group][i]
+            item = self.data[self.current_group_index][i]
             if item['state'] is None:
                 return i
         # if no item found, start from the current position and find the previous item that is in the 'view' state
-        for i in range(self.current_order - 1, -1, -1):
-            item = self.data[self.current_group][i]
+        for i in range(self.current_order_index - 1, -1, -1):
+            item = self.data[self.current_group_index][i]
             if item['state'] == 'view':
                 return i
         # if no item found, start from the current position and find the previous item that is completed
-        for i in range(self.current_order - 1, -1, -1):
-            item = self.data[self.current_group][i]
+        for i in range(self.current_order_index - 1, -1, -1):
+            item = self.data[self.current_group_index][i]
             if item['state'] == 'completed':
                 return i
         return None
 
-    def start(self, group=None):
+    def start(self, group_index=None):
         """Start the navigation system."""
-        if group is None:
+        if group_index is None:
             raise ValueError("group parameter is mandatory. Use group=0 to start from the first group.")
-        if group < 0 or group >= len(self.data):
+        if group_index < 0 or group_index >= len(self.data):
             raise ValueError("Invalid group index.")
         self._leave_current_item()
-        self.current_group = group
-        self.current_order = 0
+        self.current_group_index = group_index
+        self.current_order_index = 0
         # remove the handler from the current item
         self._view_current_item()
 
     def next_item(self):
         """Move to the next item in the list."""
         self._leave_current_item()
-        next_index = self._next_item_index()
+        next_item_index = self._next_item_index()
         
-        if next_index is not None:
-            self.current_order = next_index
+        if next_item_index is not None:
+            self.current_order_index = next_item_index
         else:
-            if self.group_navigation and self.current_group < len(self.data) - 1:
-                self.current_group += 1
-                self.current_order = 0
-                next_index = self._next_item_index()
-                if next_index is not None:
-                    self.current_order = 0
+            if self.group_navigation and self.current_group_index < len(self.data) - 1:
+                self.current_group_index += 1
+                self.current_order_index = 0
+                next_item_index = self._next_item_index()
+                if next_item_index is not None:
+                    self.current_order_index = 0
             else:
                 logger.debug("You are at the last item in the current group.")
         self._view_current_item()
@@ -183,14 +183,14 @@ class OrderNavigationSystem:
         self._leave_current_item()
         prev_index = self._previous_item_index()
         if prev_index is not None:
-            self.current_order = prev_index
+            self.current_order_index = prev_index
         else:
-            if self.group_navigation and self.current_group > 0:
-                self.current_group -= 1
-                self.current_order = len(self.data[self.current_group])
+            if self.group_navigation and self.current_group_index > 0:
+                self.current_group_index -= 1
+                self.current_order_index = len(self.data[self.current_group_index])
                 prev_index = self._previous_item_index()
                 if prev_index is not None:
-                    self.current_order = prev_index
+                    self.current_order_index = prev_index
             else:
                 logger.debug("You are at the first item in the current group.")
         self._view_current_item()
@@ -198,12 +198,12 @@ class OrderNavigationSystem:
     def next_page(self):
         """Move to the first item on the next group of items."""
         self._leave_current_item()
-        if self.current_group < len(self.data) - 1:
-            self.current_group += 1
-            self.current_order = 0
+        if self.current_group_index < len(self.data) - 1:
+            self.current_group_index += 1
+            self.current_order_index = 0
             if self.auto_print:
-                if self.current_order >= len(self.data[self.current_group]):
-                    self.current_order = 0
+                if self.current_order_index >= len(self.data[self.current_group_index]):
+                    self.current_order_index = 0
         else:
             logger.debug("You are at the last group.")
         self._view_current_item()
@@ -211,11 +211,11 @@ class OrderNavigationSystem:
     def previous_page(self):
         """Move to first item on the previous group of items."""
         self._leave_current_item()
-        if self.current_group > 0:
-            self.current_group -= 1
-            self.current_order = 0
-            if self.current_order < 0:
-                self.current_order = len(self.data[self.current_group]) - 1
+        if self.current_group_index > 0:
+            self.current_group_index -= 1
+            self.current_order_index = 0
+            if self.current_order_index < 0:
+                self.current_order_index = len(self.data[self.current_group_index]) - 1
         else:
             logger.debug("You are at the first group.")
         self._view_current_item()
@@ -223,14 +223,14 @@ class OrderNavigationSystem:
     def continue_item(self):
         """Move to the next item in the current list that is not viewed or completed."""
         self._leave_current_item()
-        for i in range(len(self.data[self.current_group])):
-            if self.data[self.current_group][i]['state'] != 'view' and self.data[self.current_group][i]['state'] != 'completed':
-                self.current_order = i
+        for i in range(len(self.data[self.current_group_index])):
+            if self.data[self.current_group_index][i]['state'] != 'view' and self.data[self.current_group_index][i]['state'] != 'completed':
+                self.current_order_index = i
                 self._view_current_item()
                 return
-        for i in range(len(self.data[self.current_group])):
-            if self.data[self.current_group][i]['state'] == 'view':
-                self.current_order = i
+        for i in range(len(self.data[self.current_group_index])):
+            if self.data[self.current_group_index][i]['state'] == 'view':
+                self.current_order_index = i
                 self._view_current_item()
                 return
         logger.debug("All items in the current group are viewed or completed.")
@@ -239,8 +239,8 @@ class OrderNavigationSystem:
     def get_current_state(self):
         """Get the current state of the navigation system."""
         return {
-            "current_group": self.current_group,
-            "current_order": self.current_order,
+            "current_group": self.current_group_index,
+            "current_order": self.current_order_index,
             "item": self.get_current_item()
         }
 
@@ -248,15 +248,15 @@ class OrderNavigationSystem:
         """Get the current item."""
         if self.data == [] or self.data == [[]]:
             raise ValueError("'data' is empty.")
-        elif self.data[self.current_group] == []:
+        elif self.data[self.current_group_index] == []:
             raise ValueError("Current group is empty.")
-        elif self.current_group >= len(self.data):
+        elif self.current_group_index >= len(self.data):
             raise ValueError("Current group index is out of range.")
-        return self.data[self.current_group][self.current_order]
+        return self.data[self.current_group_index][self.current_order_index]
 
     def get_current_group(self):
         """Get the current group."""
-        return self.data[self.current_group]
+        return self.data[self.current_group_index]
 
     def toggle_autoprint(self):
         """Toggle the auto-print ON/OFF (True/False)."""
@@ -297,7 +297,7 @@ class OrderNavigationSystem:
         logger.debug("Current item reset.")
 
     def reset_current_group(self):
-        for item in self.data[self.current_group]:
+        for item in self.data[self.current_group_index]:
             item['state'] = None
             item['handlers'] = []
             # if 'handlers' not in item:
